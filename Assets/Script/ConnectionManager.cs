@@ -12,23 +12,27 @@ public class ConnectionManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance != null) Destroy(this);
-        else Instance = this;
+        if (Instance != null) { Destroy(gameObject); return; }
+        Instance = this;
+
+        foreach (var b in FindObjectsOfType<Building>())
+            RegisterBuilding(b);
     }
 
     /// <summary>Appelé après placement d'un bâtiment</summary>
     public void RegisterBuilding(Building b)
     {
-        buildings.Add(b);
-        RecalculateAllConnections();
-        Debug.Log($"[ConnectionManager] Registered building «{b.gameObject.name}». Total buildings: {buildings.Count}");
+        if (!buildings.Contains(b))
+        {
+            buildings.Add(b);
+            RecalculateAllConnections();
+        }
     }
 
     /// <summary>Appelé après placement d'une route</summary>
     public void RegisterRoad()
     {
         RecalculateAllConnections();
-        Debug.Log("[ConnectionManager] Route placed → connections recalculated");
     }
 
     private void RecalculateAllConnections()
@@ -45,11 +49,9 @@ public class ConnectionManager : MonoBehaviour
             if (reachable.Count > 0)
             {
                 var names = string.Join(", ", reachable.Select(x => x.gameObject.name));
-                Debug.Log($"[ConnectionManager] «{b.gameObject.name}» connecté à → {names}");
             }
             else
             {
-                Debug.Log($"[ConnectionManager] «{b.gameObject.name}» n'est connecté à aucun autre bâtiment");
             }
         }
     }

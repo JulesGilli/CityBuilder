@@ -7,7 +7,7 @@ using System.Linq;
 public class House : MonoBehaviour
 {
     [Header("Connexion au marché")]
-    [Tooltip("True si cette maison est reliée à au moins un marché via les routes")]
+    [Tooltip("True si cette maison est dans le rayon d'un marché ET reliée par une route")]
     public bool isConnectedToMarket = false;
 
     Building _b;
@@ -20,16 +20,26 @@ public class House : MonoBehaviour
 
     void Update()
     {
-        // En Edit comme en Play, on met à jour la valeur du booléen
         UpdateConnection();
     }
 
     void UpdateConnection()
     {
         if (_b == null) return;
-        // On regarde la liste des bâtiments connectés
-        // et on vérifie si l'un d'eux possède un component Market
-        isConnectedToMarket = _b.connected
-            .Any(other => other.GetComponent<Market>() != null);
+
+        // 1) trouve tous les marchés connectés par routes
+        var connectedMarkets = _b.connected
+                                .Select(other => other.GetComponent<Market>())
+                                .Where(m => m != null);
+
+        // 2) vérifie qu’au moins un marché est dans son actionRadius
+        bool prev = isConnectedToMarket;
+        isConnectedToMarket = connectedMarkets
+            .Any(m => Vector3.Distance(m.transform.position, transform.position)
+                      <= m.actionRadius);
+
+        // 3) debug
+        if (isConnectedToMarket != prev)
+            Debug.Log($"{name}: connecté à un marché ? {isConnectedToMarket}");
     }
 }

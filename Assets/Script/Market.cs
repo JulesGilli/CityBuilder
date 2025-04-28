@@ -1,9 +1,16 @@
+// Assets/Scripts/Market.cs
 using UnityEngine;
 
-/// <summary>
-/// Simple marqueur à attacher à votre prefab “Marché”.
-/// </summary>
+[RequireComponent(typeof(Building))]
 public class Market : MonoBehaviour
 {
-    // Vide : on s’en sert juste pour l’identification
+    [Tooltip("Portée maximale (en unités world) pour desservir une maison")]
+    public float actionRadius = 10f;
+
+    void OnDrawGizmosSelected()
+    {
+        // Affiche la portée dans l’éditeur
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, actionRadius);
+    }
 }

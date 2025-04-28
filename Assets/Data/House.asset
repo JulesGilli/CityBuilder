@@ -14,3 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   size: {x: 3, y: 3}
   prefab: {fileID: 4071108934670133561, guid: b5db028e9065daf40bd33eaa7b8bed24, type: 3}
+  prefabVariants:
+  - {fileID: 725518349831941064, guid: c602cc021e16c574c9e6f4fdae1ba4f4, type: 3}
+  - {fileID: 4071108934670133561, guid: b5db028e9065daf40bd33eaa7b8bed24, type: 3}
+  - {fileID: 725518349831941064, guid: 76e83ddaa444ff041bfb5ab346cb038f, type: 3}
+  - {fileID: 725518349831941064, guid: ba3a9fb37b3d03445956bce4d610bbc2, type: 3}
+  constructionCost:
+  - resourceType: 0
+    amount: 20

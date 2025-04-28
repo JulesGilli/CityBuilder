@@ -170,10 +170,14 @@ public class InputManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0) && allEmpty)
         {
-            // Placer les routes 3D si tu veux (ou sauter cette étape)
+            // 1) On place toutes les tuiles de route
             foreach (var cell in path)
                 placement.TryPlaceRoad(cell);
 
+            // 2) On notifie le ConnectionManager pour recalculer
+            ConnectionManager.Instance.RegisterRoad();
+
+            // 3) On réinitialise le sélection de départ
             roadStart = null;
         }
 
