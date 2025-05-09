@@ -73,14 +73,50 @@ public class PlacementManager : MonoBehaviour
 
     public bool CanPlaceBuilding(BuildingData data, Vector2Int origin)
     {
+        // 1) Vérification que toutes les cellules du bâtiment sont libres
         for (int dx = 0; dx < data.size.x; dx++)
+        {
             for (int dy = 0; dy < data.size.y; dy++)
             {
-                var c = gridManager.GetCell(origin + new Vector2Int(dx, dy));
-                if (c == null || c.type != CellType.Empty) return false;
+                var cell = gridManager.GetCell(origin + new Vector2Int(dx, dy));
+                if (cell == null || cell.type != CellType.Empty)
+                    return false;
             }
+        }
+
+        // 2) Si c'est la carrière, s'assurer qu'elle est placée à côté d'un gisement
+        if (data.name == "Quarry" && !HasDepositNearby(origin, data.size))
+            return false;
+
+        // (éventuels autres checks spécifiques à d'autres bâtiments)
+
         return true;
     }
+
+    private bool HasDepositNearby(Vector2Int origin, Vector2Int size)
+    {
+        // On balaye une bordure d'une cellule tout autour de l'emprise du bâtiment
+        for (int dx = -1; dx <= size.x; dx++)
+        {
+            for (int dy = -1; dy <= size.y; dy++)
+            {
+                var cellPos = origin + new Vector2Int(dx, dy);
+
+                // Ignorer hors grille
+                if (!gridManager.IsValidCell(cellPos))
+                    continue;
+
+                // Si l'occupant est un gisement, ok
+                var occ = gridManager.GetCell(cellPos).occupant;
+                if (occ != null && occ.GetComponent<MineDeposit>() != null)
+                    return true;
+            }
+        }
+
+        // Aucun gisement trouvé à proximité
+        return false;
+    }
+
 
     public bool CanPlaceRoad(Vector2Int o)
     {

@@ -118,7 +118,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6167815243688145451}
   m_Layer: 0
-  m_Name: Route1
+  m_Name: Route
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

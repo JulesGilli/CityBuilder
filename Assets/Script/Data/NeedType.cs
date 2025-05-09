@@ -3,4 +3,5 @@ public enum NeedType
 {
     MarketAccess,
     WarehouseAccess,
+    HarvestSupply,
 }

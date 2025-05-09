@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aff461179e37cf24f98074e65dd6c717, type: 3}
+  m_Name: GathererHut
+  m_EditorClassIdentifier: 
+  size: {x: 2, y: 2}
+  prefab: {fileID: 4071108934670133561, guid: bb41fdb82bf50564290101948d3886e8, type: 3}
+  prefabVariants: []
+  constructionCost:
+  - resourceType: 0
+    amount: 10
+  - resourceType: 1
+    amount: 20
