@@ -50,6 +50,7 @@ public class PlacementManager : MonoBehaviour
         Building b = go.GetComponent<Building>() ?? go.AddComponent<Building>();
         b.origin = origin;
         b.size = data.size;
+        b.data = data;
         ConnectionManager.Instance.RegisterBuilding(b);
 
         // ─── 3) On dépense réellement les ressources ─────────────
@@ -132,10 +133,98 @@ public class PlacementManager : MonoBehaviour
         Vector3 worldPos = gridManager.GetWorldCenter(coord, Vector2Int.one);
         GameObject go = Instantiate(roadData.prefab, worldPos, Quaternion.identity, transform);
 
+        // ← AJOUTEZ CES LIGNES :
+        var roadComp = go.GetComponent<Road>() ?? go.AddComponent<Road>();
+        roadComp.data = roadData;  // pour le coût à rembourser
+        roadComp.coord = coord;     // pour libérer la bonne cellule
+
         ConnectionManager.Instance.RegisterRoad();
 
         c.type = CellType.Road;
         c.occupant = go;
         return true;
     }
+
+
+    /// <summary>
+    /// Try to demolish whatever occupies this cell (building or road).
+    /// </summary>
+    public bool TryDemolishAt(Vector2Int coord)
+    {
+        var cell = gridManager.GetCell(coord);
+        if (cell == null || cell.type == CellType.Empty) return false;
+
+        // 1) Si c'est un bâtiment
+        var b = cell.occupant.GetComponent<Building>();
+        if (b != null)
+        {
+            DemolishBuilding(b);
+            return true;
+        }
+
+        // 2) Sinon on cherche un Road
+        var r = cell.occupant.GetComponent<Road>();
+        if (r != null)
+        {
+            DemolishRoad(r);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void DemolishBuilding(Building b)
+    {
+        // 1) refund half the cost
+        foreach (var cost in b.data.constructionCost)
+        {
+            int refund = Mathf.FloorToInt(cost.amount * 0.5f);
+            ResourceManager.Instance.Add(cost.resourceType, refund);
+        }
+
+        // 2) clear all its cells
+        for (int dx = 0; dx < b.size.x; dx++)
+            for (int dy = 0; dy < b.size.y; dy++)
+            {
+                var pos = b.origin + new Vector2Int(dx, dy);
+                if (!gridManager.IsValidCell(pos)) continue;
+                var c = gridManager.GetCell(pos);
+                if (c.occupant == b.gameObject)
+                {
+                    c.occupant = null;
+                    c.type = CellType.Empty;
+                }
+            }
+
+        // 3) destroy GameObject and update connections
+        Destroy(b.gameObject);
+        ConnectionManager.Instance.RegisterRoad();
+    }
+
+    private void DemolishRoad(Road r)
+    {
+        // 1) Remboursement : 50% du coût
+
+        foreach (var cost in r.data.constructionCost)
+        {
+            int refund = Mathf.FloorToInt(cost.amount * 0.5f);
+            ResourceManager.Instance.Add(cost.resourceType, Mathf.FloorToInt(cost.amount * 0.5f));
+        }
+
+        // 2) Libération de la cellule
+        var cell = gridManager.GetCell(r.coord);
+        if (cell != null)
+        {
+            // Avant de clear, on stocke le go
+            cell.occupant = null;
+            cell.type = CellType.Empty;
+        }
+
+        // 3) Destruction du GameObject route
+        Destroy(r.gameObject);
+
+        // 4) Recalcul des connexions (marchés, etc.)
+        ConnectionManager.Instance.RegisterRoad();
+    }
+
 }

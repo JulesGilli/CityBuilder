@@ -7,6 +7,7 @@ public class Building : MonoBehaviour
     [HideInInspector] public Vector2Int size;     // taille en cellules
     [HideInInspector] public List<Building> connected = new List<Building>();
 
+    [HideInInspector] public BuildingData data;
     /// <summary>
     /// Renvoie la liste des cellules occupées par ce bâtiment.
     /// </summary>

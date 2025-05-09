@@ -18,6 +18,8 @@ public class InputManager : MonoBehaviour
     private bool inPlaceMode => selectedBuilding != null || selectedRoad != null;
     private Vector2Int? roadStart = null;
 
+    private bool demolitionMode = false;
+
     void Start()
     {
         // Pool de quads pour le surlignage
@@ -40,6 +42,39 @@ public class InputManager : MonoBehaviour
         // Ne pas interférer si on clique sur l'UI
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
             return;
+
+        if (demolitionMode)
+        {
+            if (Input.GetMouseButtonDown(1))
+            {
+                ClearMode();
+                return;
+            }
+
+            HandleDemolition();
+            return;
+        }
+
+        // Si on n'est pas déjà en placement ou démolition et qu'on clique gauche :
+        if (!inPlaceMode && !demolitionMode && Input.GetMouseButtonDown(0))
+        {
+            if (!EventSystem.current.IsPointerOverGameObject() && CastRay(out Vector3 wp))
+            {
+                var coord = WorldPosToCell(wp);
+                var cell = placement.gridManager.GetCell(coord);
+                if (cell != null && cell.occupant != null)
+                {
+                    var b = cell.occupant.GetComponent<Building>();
+                    if (b != null)
+                    {
+                        BuildingInfoUI.Instance.Show(b);
+                        return;
+                    }
+                }
+            }
+            // Si on clique ailleurs, on cache le panel
+            BuildingInfoUI.Instance.Hide();
+        }
 
         if (!inPlaceMode) return;
 
@@ -97,6 +132,8 @@ public class InputManager : MonoBehaviour
         selectedBuilding = null;
         selectedRoad = null;
         roadStart = null;
+        demolitionMode = false;
+
         ShowGrid(false);
         DisableAllHighlights();
     }
@@ -223,5 +260,40 @@ public class InputManager : MonoBehaviour
     void DisableAllHighlights()
     {
         foreach (var h in highlights) h.SetActive(false);
+    }
+
+    /// <summary> Bascule le mode démolition ON/OFF </summary>
+    public void ToggleDemolitionMode()
+    {
+        if (demolitionMode)
+            ClearMode();
+        else
+            StartDemolitionMode();
+    }
+
+
+    private void HandleDemolition()
+    {
+        // highlight the hovered cell if occupied
+        if (!CastRay(out Vector3 wp)) { /* clear highlight */ return; }
+        var coord = WorldPosToCell(wp);
+        var cell = placement.gridManager.GetCell(coord);
+
+        // position a highlight...
+        // (reuse your tileHighlightPrefab pool, coloring any occupied cell)
+        // 
+
+        if (Input.GetMouseButtonDown(0) && cell != null && cell.type != CellType.Empty)
+        {
+            placement.TryDemolishAt(coord);
+        }
+    }
+
+    /// <summary>Switch into Demolition mode.</summary>
+    public void StartDemolitionMode()
+    {
+        ClearMode();  // disable any building/road selection
+        demolitionMode = true;
+        ShowGrid(true);
     }
 }

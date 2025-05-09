@@ -32,5 +32,7 @@ public class BuildingSelectionPanel : MonoBehaviour
             var btn = go.GetComponent<RoadIconButton>();
             btn.Initialize(data);
         }
+
+
     }
 }
