@@ -76,4 +76,9 @@ public class ResourceManager : MonoBehaviour
         Debug.Log($"[Resources] –{amount} {type} → {_resources[type]}");
         return true;
     }
+
+    public Dictionary<ResourceType, int> GetRessources()
+    {
+        return _resources;
+    }
 }
