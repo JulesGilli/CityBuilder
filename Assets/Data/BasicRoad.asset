@@ -12,5 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 065c1d858ec19144081283c1cd11a635, type: 3}
   m_Name: BasicRoad
   m_EditorClassIdentifier: 
-  neighbors: 00000000
   prefab: {fileID: 5410018156881139943, guid: fe442147507468842a308520298612de, type: 3}
+  icon: {fileID: 0}
+  displayName: Road
+  description: "A graded path for wagons and foot\u2010travel. Lay roads between
+    every building to carry stone, timber, grain, and coin\u2014ensuring swift passage
+    for goods and folk throughout your growing township"
+  constructionCost:
+  - resourceType: 0
+    amount: 5

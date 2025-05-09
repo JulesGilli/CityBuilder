@@ -20,3 +20,7 @@ MonoBehaviour:
     amount: 20
   - resourceType: 0
     amount: 30
+  icon: {fileID: 0}
+  description: "Extracts stone from a nearby vein. Requires an adjacent deposit and
+    a wagon route to an enabled warehouse to stockpile blocks for your city\u2019s
+    craftsmen."

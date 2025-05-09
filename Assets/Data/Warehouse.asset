@@ -15,4 +15,14 @@ MonoBehaviour:
   size: {x: 4, y: 4}
   prefab: {fileID: 4071108934670133561, guid: 7c905175af460e84ebed92f2eb97ccae, type: 3}
   prefabVariants: []
-  constructionCost: []
+  constructionCost:
+  - resourceType: 0
+    amount: 10
+  - resourceType: 1
+    amount: 20
+  - resourceType: 2
+    amount: 10
+  icon: {fileID: 0}
+  description: "Central depot for all goods collected\u2014stone, wood, harvests,
+    and more. Connect producers and markets by well-maintained roads to ensure steady
+    supply."

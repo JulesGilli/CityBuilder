@@ -19,7 +19,7 @@ public class UIResourceDisplay : MonoBehaviour
     public TMP_Text stoneText;
 
     [Tooltip("TMP Text pour afficher la récolte")]
-    public TMP_Text harvestText;  // ← Ajouté
+    public TMP_Text harvestText;
 
     void Update()
     {
@@ -29,11 +29,18 @@ public class UIResourceDisplay : MonoBehaviour
         int gold = ResourceManager.Instance.Get(ResourceType.Gold);
         int wood = ResourceManager.Instance.Get(ResourceType.Wood);
         int stone = ResourceManager.Instance.Get(ResourceType.Stone);
-        int harvest = ResourceManager.Instance.Get(ResourceType.Harvest);  // ← Ajouté
+        int harvest = ResourceManager.Instance.Get(ResourceType.Harvest);
 
-        if (goldText != null) goldText.text = gold.ToString();
-        if (woodText != null) woodText.text = wood.ToString();
-        if (stoneText != null) stoneText.text = stone.ToString();
-        if (harvestText != null) harvestText.text = harvest.ToString();  // ← Ajouté
+        if (goldText != null)
+            goldText.text = $"Gold: {gold}";
+
+        if (woodText != null)
+            woodText.text = $"Wood: {wood}";
+
+        if (stoneText != null)
+            stoneText.text = $"Stone: {stone}";
+
+        if (harvestText != null)
+            harvestText.text = $"Harvest: {harvest}";
     }
 }

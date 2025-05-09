@@ -17,4 +17,10 @@ public class BuildingData : ScriptableObject
 
     [Header("Coût de construction")]
     public ResourceAmount[] constructionCost;
+
+    [Header("Icon de la construction")]
+    public Sprite icon;
+
+    [Header("Description de la construction")]
+    public string description;
 }

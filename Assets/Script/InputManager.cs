@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿// InputManager.cs
+// Simplifié : suppression des toggles UI, prend en charge les placements via script (icônes)
+using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
@@ -10,19 +11,11 @@ public class InputManager : MonoBehaviour
     public GameObject tileHighlightPrefab;
     public Material matValid, matInvalid;
 
-    [Header("UI Toggles")]
-    public Toggle[] buildingToggles;
-    public BuildingData[] buildingVariants;
-    public Toggle roadToggle;
-    public RoadData roadVariant;
-
     // Internals
     private List<GameObject> highlights = new List<GameObject>();
     private BuildingData selectedBuilding = null;
     private RoadData selectedRoad = null;
     private bool inPlaceMode => selectedBuilding != null || selectedRoad != null;
-
-    // Nouvelle variable pour le mode routes "start-end"
     private Vector2Int? roadStart = null;
 
     void Start()
@@ -40,23 +33,6 @@ public class InputManager : MonoBehaviour
         }
 
         ClearMode();
-
-        // Abonnements aux toggles
-        for (int i = 0; i < buildingToggles.Length; i++)
-        {
-            int idx = i;
-            buildingToggles[i].onValueChanged.AddListener(on =>
-            {
-                if (on) SetBuildingMode(buildingVariants[idx]);
-                else if (selectedBuilding == buildingVariants[idx]) ClearMode();
-            });
-        }
-
-        roadToggle.onValueChanged.AddListener(on =>
-        {
-            if (on) SetRoadMode(roadVariant);
-            else if (selectedRoad == roadVariant) ClearMode();
-        });
     }
 
     void Update()
@@ -67,7 +43,7 @@ public class InputManager : MonoBehaviour
 
         if (!inPlaceMode) return;
 
-        // Clic droit annule tout (et reset roadStart)
+        // Clic droit annule tout
         if (Input.GetMouseButtonDown(1))
         {
             roadStart = null;
@@ -81,7 +57,26 @@ public class InputManager : MonoBehaviour
             HandlePreviewAndPlaceRoad();
     }
 
-    void SetBuildingMode(BuildingData data)
+    /// <summary>
+    /// Déclenché par UI script pour débuter le placement d'un building
+    /// </summary>
+    public void StartBuildingPlacement(BuildingData data)
+    {
+        ClearMode();
+        SetBuildingMode(data);
+    }
+
+    /// <summary>
+    /// Déclenché par UI script pour débuter le placement d'une route
+    /// </summary>
+    public void StartRoadPlacement(RoadData data)
+    {
+        ClearMode();
+        SetRoadMode(data);
+    }
+
+    // Set modes internes
+    private void SetBuildingMode(BuildingData data)
     {
         selectedBuilding = data;
         selectedRoad = null;
@@ -89,7 +84,7 @@ public class InputManager : MonoBehaviour
         ShowGrid(true);
     }
 
-    void SetRoadMode(RoadData data)
+    public void SetRoadMode(RoadData data)
     {
         selectedRoad = data;
         selectedBuilding = null;
@@ -103,8 +98,6 @@ public class InputManager : MonoBehaviour
         selectedRoad = null;
         roadStart = null;
         ShowGrid(false);
-        foreach (var t in buildingToggles) t.isOn = false;
-        roadToggle.isOn = false;
         DisableAllHighlights();
     }
 
@@ -133,7 +126,7 @@ public class InputManager : MonoBehaviour
         if (!CastRay(out Vector3 wp)) { DisableAllHighlights(); return; }
 
         var hover = WorldPosToCell(wp);
-        // Phase 1 : on n'a pas encore de point de départ
+        // Phase 1: choix du départ
         if (roadStart == null)
         {
             bool ok = placement.CanPlaceRoad(hover);
@@ -151,7 +144,7 @@ public class InputManager : MonoBehaviour
             return;
         }
 
-        // Phase 2 : on a un départ → on montre le chemin
+        // Phase 2: affichage du chemin
         var start = roadStart.Value;
         var path = GetManhattanPath(start, hover);
         bool allEmpty = true;
@@ -170,39 +163,27 @@ public class InputManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0) && allEmpty)
         {
-            // 1) On place toutes les tuiles de route
             foreach (var cell in path)
                 placement.TryPlaceRoad(cell);
-
-            // 2) On notifie le ConnectionManager pour recalculer
             ConnectionManager.Instance.RegisterRoad();
-
-            // 3) On réinitialise le sélection de départ
             roadStart = null;
         }
-
     }
 
-    // Génère un chemin "Manhattan" start→end
     List<Vector2Int> GetManhattanPath(Vector2Int start, Vector2Int end)
     {
-        List<Vector2Int> path = new List<Vector2Int>();
-        // horizontal
+        var path = new List<Vector2Int>();
         int dirX = end.x >= start.x ? 1 : -1;
         for (int x = start.x; x != end.x; x += dirX)
             path.Add(new Vector2Int(x, start.y));
-        // ajoute la dernière colonne
         path.Add(new Vector2Int(end.x, start.y));
-        // vertical
         int dirY = end.y >= start.y ? 1 : -1;
         for (int y = start.y; y != end.y; y += dirY)
             path.Add(new Vector2Int(end.x, y));
-        // ajoute la dernière ligne
         path.Add(new Vector2Int(end.x, end.y));
         return path;
     }
 
-    // Helpers
     bool CastRay(out Vector3 wp)
     {
         wp = Vector3.zero;
@@ -229,7 +210,7 @@ public class InputManager : MonoBehaviour
         for (int dx = 0; dx < size.x; dx++)
             for (int dy = 0; dy < size.y; dy++)
             {
-                Vector2Int cell = origin + new Vector2Int(dx, dy);
+                var cell = origin + new Vector2Int(dx, dy);
                 if (!placement.gridManager.IsValidCell(cell)) continue;
                 var h = highlights[idx++];
                 h.SetActive(true);

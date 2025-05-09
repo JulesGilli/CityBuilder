@@ -15,4 +15,12 @@ MonoBehaviour:
   size: {x: 3, y: 3}
   prefab: {fileID: 4071108934670133561, guid: 2e7a9adbd9a20cb46a60e55236e3b8e2, type: 3}
   prefabVariants: []
-  constructionCost: []
+  constructionCost:
+  - resourceType: 0
+    amount: 20
+  - resourceType: 1
+    amount: 10
+  icon: {fileID: 0}
+  description: Fells and hews timber from the deep woods. Must stand beside a forest
+    and be linked by road to a warehouse, whence your carpenters may fetch planks
+    and boards for construction
