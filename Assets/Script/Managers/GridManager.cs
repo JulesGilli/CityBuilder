@@ -30,16 +30,6 @@ public class GridManager : MonoBehaviour
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
                 grid[x, y] = new Cell(new Vector2Int(x, y));
-
-        // Assure-toi que rien n'est occupé au lancement
-        foreach (var cell in grid)
-            cell.isOccupied = false;
-
-        // Initialize grid data
-        grid = new Cell[width, height];
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < height; y++)
-                grid[x, y] = new Cell(new Vector2Int(x, y));
     }
 
     // Convertit coordonnée de grille → position monde

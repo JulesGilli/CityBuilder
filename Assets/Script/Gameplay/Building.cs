@@ -1,6 +1,7 @@
 // Building.cs
 using UnityEngine;
 using System.Collections.Generic;
+using static UnityEngine.UI.Image;
 
 public class Building : MonoBehaviour
 {
@@ -11,6 +12,9 @@ public class Building : MonoBehaviour
     [HideInInspector] public BuildingData data;
     public int variantIndex;
 
+
+    public void Initialize(BuildingData data, Vector2Int origin)
+        => Initialize(data, origin, 0);
     /// <summary>
     /// Initialise ce bâtiment après un Load ou une construction.
     /// Pose l'objet, choisit la variante et marque les cellules occupées.
@@ -51,6 +55,8 @@ public class Building : MonoBehaviour
                 cell.isOccupied = true;
         }
 
+        if (GetComponent<Collider>() == null)
+            gameObject.AddComponent<BoxCollider>().isTrigger = true;
     }
 
     /// <summary>
