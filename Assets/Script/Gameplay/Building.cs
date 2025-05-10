@@ -4,14 +4,16 @@ using System.Collections.Generic;
 
 public class Building : MonoBehaviour
 {
-    [HideInInspector] public Vector2Int origin;
-    [HideInInspector] public Vector2Int size;
+    [HideInInspector] public Vector2Int origin;   // coin bas-gauche en cellules
+    [HideInInspector] public Vector2Int size;     // taille en cellules
+    [HideInInspector] public List<Building> connected = new List<Building>();
+
     [HideInInspector] public BuildingData data;
-    [HideInInspector] public int variantIndex;
+    public int variantIndex;
 
     /// <summary>
-    /// Initialise ce bâtiment après Load ou construction.
-    /// Positionne le GameObject et marque la grille.
+    /// Initialise ce bâtiment après un Load ou une construction.
+    /// Pose l'objet, choisit la variante et marque les cellules occupées.
     /// </summary>
     public void Initialize(BuildingData data, Vector2Int origin, int variantIndex = 0)
     {
@@ -20,32 +22,39 @@ public class Building : MonoBehaviour
         this.size = data.size;
         this.variantIndex = variantIndex;
 
-        // Définir position
-        Vector3 worldPos = Vector3.zero;
+        // Position dans le monde
+        Vector3 worldPos;
         if (GridManager.Instance != null)
             worldPos = GridManager.Instance.CellToWorld(origin);
         else
-            Debug.LogWarning("[Building] GridManager non disponible, position par défaut utilisée");
+        {
+            worldPos = new Vector3(origin.x, 0, origin.y);
+            Debug.LogWarning("[Building] GridManager.Instance est null, position par défaut utilisée");
+        }
         transform.position = worldPos;
 
-        // Marquer les cellules occupées
+        // Marquer les cellules sur la grille
         if (GridManager.Instance != null)
         {
-            foreach (var coord in OccupiedCells())
+            foreach (var cellCoord in OccupiedCells())
             {
-                var cell = GridManager.Instance.GetCell(coord);
+                var cell = GridManager.Instance.GetCell(cellCoord);
                 if (cell != null)
-                {
-                    cell.isOccupied = true;
-                    cell.occupant = gameObject;
-                    cell.type = CellType.Building;
-                }
+                    cell.isOccupied = true;  // nécessite un bool isOccupied dans Cell
             }
         }
+
+        foreach (var cellCoord in OccupiedCells())
+        {
+            var cell = GridManager.Instance.GetCell(cellCoord);
+            if (cell != null)
+                cell.isOccupied = true;
+        }
+
     }
 
     /// <summary>
-    /// Retourne tous les offsets de cellules occupées par ce bâtiment.
+    /// Renvoie la liste des cellules occupées par ce bâtiment.
     /// </summary>
     public IEnumerable<Vector2Int> OccupiedCells()
     {
