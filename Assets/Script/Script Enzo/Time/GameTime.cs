@@ -12,6 +12,7 @@ public class GameTime : MonoBehaviour
     public TextMeshProUGUI timeDisplay;
 
     private float timer = 0f;
+    public static GameTime Instance { get; private set; }
 
     public enum Season { Printemps, Été, Automne, Hiver }
     public Season currentSeason;
@@ -29,9 +30,18 @@ public class GameTime : MonoBehaviour
 
     public event Action<int, int, int> OnDayChanged; // year, month, day
 
+    void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+        DontDestroyOnLoad(gameObject);
+    }
+
     void Start()
     {
         UpdateSeason();
+        if (timeDisplay != null)
+            timeDisplay.text = GetFormattedTime();
     }
 
     void Update()
@@ -89,8 +99,8 @@ public class GameTime : MonoBehaviour
             }
         }
 
-        /*string formattedTime = GetFormattedTime();
-        Debug.Log(formattedTime);*/
+        if (timeDisplay != null)
+            timeDisplay.text = GetFormattedTime();
     }
 
     void UpdateSeason()

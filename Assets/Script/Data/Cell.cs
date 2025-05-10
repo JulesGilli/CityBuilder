@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public enum CellType { Empty, Building, Road }
 
@@ -8,5 +8,12 @@ public class Cell
     public CellType type = CellType.Empty;
     public GameObject occupant;
 
-    public Cell(Vector2Int c) { coord = c; }
+    // ← Ajout de ce booléen pour marquer l'occupation
+    public bool isOccupied = false;
+
+    public Cell(Vector2Int c)
+    {
+        coord = c;
+        isOccupied = false;
+    }
 }

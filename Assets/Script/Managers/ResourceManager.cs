@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 public class ResourceManager : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class ResourceManager : MonoBehaviour
     public int startHarvest = 0;
 
     private Dictionary<ResourceType, int> _resources;
+    private Dictionary<ResourceType, int> amounts = new();
 
     void Awake()
     {
@@ -80,5 +82,22 @@ public class ResourceManager : MonoBehaviour
     public Dictionary<ResourceType, int> GetRessources()
     {
         return _resources;
+    }
+
+    public ResourceAmount[] GetCurrentAmounts()
+    {
+        return amounts.Select(kv => new ResourceAmount
+        {
+            resourceType = kv.Key,
+            amount = kv.Value
+        }).ToArray();
+    }
+
+    public void SetAmounts(ResourceAmount[] arr)
+    {
+        amounts.Clear();
+        foreach (var r in arr)
+            amounts[r.resourceType] = r.amount;
+        // Met à jour l’UI, etc.
     }
 }
