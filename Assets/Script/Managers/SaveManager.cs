@@ -1,15 +1,16 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections;
 
 [DefaultExecutionOrder(-100)]
 public class SaveManager : MonoBehaviour
 {
     public static SaveManager Instance { get; private set; }
-    string savePath;
+    private string savePath;
 
     void Awake()
     {
@@ -31,18 +32,16 @@ public class SaveManager : MonoBehaviour
 
     private IEnumerator DelayedLoad()
     {
-        // Attendre la fin de la frame courante
         yield return null;
         LoadGame();
     }
 
     public void SaveGame()
     {
-        Debug.Log($"[SaveManager] Attempting to save to {savePath}");
-        // Ensure managers are present
+        Debug.Log($"[SaveManager] Saving to {savePath}");
         if (BuildingSelectionPanel.Instance == null || ResourceManager.Instance == null || GameTime.Instance == null)
         {
-            Debug.LogError("[SaveManager] Cannot save: missing instances. BSP=" + BuildingSelectionPanel.Instance + ", RM=" + ResourceManager.Instance + ", GT=" + GameTime.Instance);
+            Debug.LogError("[SaveManager] Cannot save: missing manager instances.");
             return;
         }
 
@@ -64,6 +63,14 @@ public class SaveManager : MonoBehaviour
 
             currentResources = ResourceManager.Instance.GetCurrentAmounts(),
 
+            roads = FindObjectsOfType<Road>()
+                .Select(r => new RoadSave
+                {
+                    roadDataId = r.data.name,
+                    cells = r.GetCells().ToList(),
+                    variantIndex = r.variantIndex
+                }).ToList(),
+
             year = GameTime.Instance.year,
             month = GameTime.Instance.month,
             day = GameTime.Instance.day,
@@ -71,70 +78,77 @@ public class SaveManager : MonoBehaviour
             minute = GameTime.Instance.minute
         };
 
-        var json = JsonUtility.ToJson(save, true);
+        string json = JsonUtility.ToJson(save, true);
         File.WriteAllText(savePath, json);
-        Debug.Log($"[SaveManager] Save complete: {save.buildings.Count} buildings, {save.unlockedBuildings.Count} unlocked, time {save.hour}:{save.minute:D2}");
+        Debug.Log($"[SaveManager] Save complete: {save.buildings.Count} buildings, {save.roads.Count} roads, time {save.hour}:{save.minute:D2}");
     }
 
     public void LoadGame()
     {
-        // 1) Vérifie que le fichier existe
         if (!File.Exists(savePath))
         {
-            Debug.Log("[SaveManager] Aucune sauvegarde trouvée à " + savePath);
+            Debug.Log($"[SaveManager] No save found at {savePath}");
             return;
         }
 
-        // 2) Lit et désérialise le JSON
         string json = File.ReadAllText(savePath);
         GameSave save = JsonUtility.FromJson<GameSave>(json);
-        Debug.Log($"[SaveManager] Chargement : {save.buildings.Count} bâtiments, {save.unlockedBuildings.Count} débloqués, heure {save.hour}:{save.minute:D2}");
+        Debug.Log($"[SaveManager] Loading: {save.buildings.Count} buildings, {save.roads.Count} roads, time {save.hour}:{save.minute:D2}");
 
-        // 3) Vider la scène des bâtiments existants
-        foreach (var b in FindObjectsOfType<Building>())
-            Destroy(b.gameObject);
+        // Destroy existing objects
+        foreach (var b in FindObjectsOfType<Building>()) Destroy(b.gameObject);
+        foreach (var r in FindObjectsOfType<Road>()) Destroy(r.gameObject);
 
-        // 4) Recréer les bâtiments placés
-        int created = 0;
+        // Recreate roads first
+        int roadsCreated = 0;
+        foreach (var rs in save.roads)
+        {
+            var data = Resources.Load<RoadData>($"Data/Roads/{rs.roadDataId}");
+            if (data == null)
+            {
+                Debug.LogWarning($"[SaveManager] RoadData not found: {rs.roadDataId}");
+                continue;
+            }
+            GameObject go = Instantiate(data.prefab);
+            var road = go.GetComponent<Road>();
+            road.Initialize(data, rs.cells, rs.variantIndex);
+            roadsCreated++;
+        }
+        Debug.Log($"[SaveManager] {roadsCreated}/{save.roads.Count} roads recreated");
+
+        // Recreate buildings
+        int buildingsCreated = 0;
         foreach (var bs in save.buildings)
         {
             var data = Resources.Load<BuildingData>($"Data/Buildings/{bs.buildingDataId}");
             if (data == null)
             {
-                Debug.LogWarning($"[SaveManager] BuildingData non trouvé : {bs.buildingDataId}");
+                Debug.LogWarning($"[SaveManager] BuildingData not found: {bs.buildingDataId}");
                 continue;
             }
             GameObject go = Instantiate(data.prefab);
             go.GetComponent<Building>().Initialize(data, new Vector2Int(bs.gridX, bs.gridY), bs.variantIndex);
-            created++;
+            buildingsCreated++;
         }
-        Debug.Log($"[SaveManager] {created}/{save.buildings.Count} bâtiments recréés");
+        Debug.Log($"[SaveManager] {buildingsCreated}/{save.buildings.Count} buildings recreated");
 
-        // 5) Restaurer la liste des débloqués (bâtiments + routes)
-        //    On utilise panel.initialRoads pour réinjecter les routes de base
+        // Restore unlocked buildings in selection panel
         var panel = BuildingSelectionPanel.Instance;
-
-        List<BuildingData> unlockedB = save.unlockedBuildings
+        var unlockedList = save.unlockedBuildings
             .Select(u => Resources.Load<BuildingData>($"Data/Buildings/{u.buildingDataId}"))
             .Where(d => d != null)
             .ToList();
+        panel.Initialize(unlockedList, panel.initialRoads);
+        Debug.Log($"[SaveManager] Selection panel reset: {unlockedList.Count} unlocked buildings");
 
-        panel.Initialize(
-            unlockedB,
-            panel.initialRoads
-        );
-        Debug.Log($"[SaveManager] Panel de sélection réinitialisé : {unlockedB.Count} bâtiments débloqués, {panel.initialRoads.Count} routes disponibles");
-
-        // 6) Restaurer ressources et temps
+        // Restore resources & time
         ResourceManager.Instance.SetAmounts(save.currentResources);
-
         GameTime.Instance.year = save.year;
         GameTime.Instance.month = save.month;
         GameTime.Instance.day = save.day;
         GameTime.Instance.hour = save.hour;
         GameTime.Instance.minute = save.minute;
 
-        Debug.Log("[SaveManager] Restauration terminée");
+        Debug.Log("[SaveManager] Load complete");
     }
-
 }

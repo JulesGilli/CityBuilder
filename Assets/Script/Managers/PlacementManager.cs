@@ -1,4 +1,5 @@
 ﻿// Assets/Scripts/PlacementManager.cs
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlacementManager : MonoBehaviour
@@ -127,21 +128,28 @@ public class PlacementManager : MonoBehaviour
 
     public bool TryPlaceRoad(Vector2Int coord)
     {
+        // 1) Vérification de la cellule
         var c = gridManager.GetCell(coord);
-        if (c == null || c.type != CellType.Empty) return false;
+        if (c == null || c.type != CellType.Empty)
+            return false;
 
+        // 2) Instanciation du prefab
         Vector3 worldPos = gridManager.GetWorldCenter(coord, Vector2Int.one);
         GameObject go = Instantiate(roadData.prefab, worldPos, Quaternion.identity, transform);
 
-        // ← AJOUTEZ CES LIGNES :
+        // 3) Configuration du composant Road
         var roadComp = go.GetComponent<Road>() ?? go.AddComponent<Road>();
-        roadComp.data = roadData;  // pour le coût à rembourser
-        roadComp.coord = coord;     // pour libérer la bonne cellule
+        roadComp.data = roadData;
+        // on stocke la liste des cellules (ici, une seule case)
+        roadComp.cells = new List<Vector2Int> { coord };
 
+        // 4) Enregistrer la route (sans argument, comme dans ton ConnectionManager actuel)
         ConnectionManager.Instance.RegisterRoad();
 
+        // 5) Met à jour la grille
         c.type = CellType.Road;
         c.occupant = go;
+
         return true;
     }
 
@@ -203,28 +211,28 @@ public class PlacementManager : MonoBehaviour
 
     private void DemolishRoad(Road r)
     {
-        // 1) Remboursement : 50% du coût
-
+        // 1) Remboursement à 50%
         foreach (var cost in r.data.constructionCost)
         {
             int refund = Mathf.FloorToInt(cost.amount * 0.5f);
-            ResourceManager.Instance.Add(cost.resourceType, Mathf.FloorToInt(cost.amount * 0.5f));
+            ResourceManager.Instance.Add(cost.resourceType, refund);
         }
 
-        // 2) Libération de la cellule
-        var cell = gridManager.GetCell(r.coord);
-        if (cell != null)
+        // 2) Libération de toutes les cellules de la route
+        foreach (var cellCoord in r.cells)
         {
-            // Avant de clear, on stocke le go
-            cell.occupant = null;
-            cell.type = CellType.Empty;
+            var cell = gridManager.GetCell(cellCoord);
+            if (cell != null && cell.occupant == r.gameObject)
+            {
+                cell.occupant = null;
+                cell.type = CellType.Empty;
+            }
         }
 
-        // 3) Destruction du GameObject route
+        // 3) Destruction du GameObject
         Destroy(r.gameObject);
 
-        // 4) Recalcul des connexions (marchés, etc.)
+        // 4) Recalcul des connexions (toujours sans argument)
         ConnectionManager.Instance.RegisterRoad();
     }
-
 }

@@ -1,7 +1,6 @@
 // Building.cs
-using UnityEngine;
 using System.Collections.Generic;
-using static UnityEngine.UI.Image;
+using UnityEngine;
 
 public class Building : MonoBehaviour
 {
@@ -26,38 +25,29 @@ public class Building : MonoBehaviour
         this.size = data.size;
         this.variantIndex = variantIndex;
 
-        // Position dans le monde
-        Vector3 worldPos;
-        if (GridManager.Instance != null)
-            worldPos = GridManager.Instance.CellToWorld(origin);
-        else
-        {
-            worldPos = new Vector3(origin.x, 0, origin.y);
-            Debug.LogWarning("[Building] GridManager.Instance est null, position par défaut utilisée");
-        }
-        transform.position = worldPos;
+        // Centre le bâtiment sur la grille
+        transform.position = GridManager.Instance.GetWorldCenter(origin, size);
 
-        // Marquer les cellules sur la grille
-        if (GridManager.Instance != null)
+        // Marque la grille
+        foreach (var coord in OccupiedCells())
         {
-            foreach (var cellCoord in OccupiedCells())
-            {
-                var cell = GridManager.Instance.GetCell(cellCoord);
-                if (cell != null)
-                    cell.isOccupied = true;  // nécessite un bool isOccupied dans Cell
-            }
+            var cell = GridManager.Instance.GetCell(coord);
+            if (cell == null) continue;
+            cell.isOccupied = true;
+            cell.type = CellType.Building;
+            cell.occupant = gameObject;
         }
 
-        foreach (var cellCoord in OccupiedCells())
-        {
-            var cell = GridManager.Instance.GetCell(cellCoord);
-            if (cell != null)
-                cell.isOccupied = true;
-        }
+        // Récupère ou crée un collider, puis désactive le trigger
+        Collider col = GetComponent<Collider>();
+        if (col == null)
+            col = gameObject.AddComponent<BoxCollider>();
+        col.isTrigger = false;
 
-        if (GetComponent<Collider>() == null)
-            gameObject.AddComponent<BoxCollider>().isTrigger = true;
+        // Enregistre dans le ConnectionManager
+        ConnectionManager.Instance.RegisterBuilding(this);
     }
+
 
     /// <summary>
     /// Renvoie la liste des cellules occupées par ce bâtiment.

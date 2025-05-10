@@ -12,8 +12,8 @@ public class ResourceManager : MonoBehaviour
     public int startStone = 20;
     public int startHarvest = 0;
 
+    // Ressources en cours : c'est _resources qui est l'état source
     private Dictionary<ResourceType, int> _resources;
-    private Dictionary<ResourceType, int> amounts = new();
 
     void Awake()
     {
@@ -52,52 +52,53 @@ public class ResourceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Vérifie si l’on dispose d’au moins `amount` de la ressource.
-    /// </summary>
-    public bool Has(ResourceType type, int amount)
-    {
-        return Get(type) >= amount;
-    }
-
-    /// <summary>
-    /// Consomme une ressource (alias de Spend), renvoie false si insuffisant.
-    /// </summary>
-    public bool Consume(ResourceType type, int amount)
-    {
-        return Spend(type, amount);
-    }
-
-    /// <summary>
     /// Dépense réellement : renvoie false si insuffisant.
     /// </summary>
     public bool Spend(ResourceType type, int amount)
     {
-        if (Get(type) < amount)
-            return false;
+        if (Get(type) < amount) return false;
         _resources[type] -= amount;
         Debug.Log($"[Resources] –{amount} {type} → {_resources[type]}");
         return true;
     }
 
-    public Dictionary<ResourceType, int> GetRessources()
-    {
-        return _resources;
-    }
+    public bool Has(ResourceType type, int amount) => Get(type) >= amount;
+    public bool Consume(ResourceType type, int amount) => Spend(type, amount);
 
+    // --------------------------------------------------------------------------------
+    // Méthodes de save/load
+    // --------------------------------------------------------------------------------
+
+    /// <summary>
+    /// Appelé par SaveManager.SaveGame() :
+    /// retourne pour chaque ResourceType son montant actuel.
+    /// </summary>
     public ResourceAmount[] GetCurrentAmounts()
     {
-        return amounts.Select(kv => new ResourceAmount
-        {
-            resourceType = kv.Key,
-            amount = kv.Value
-        }).ToArray();
+        // On parcourt _resources, pas un dictionnaire vide !
+        return _resources
+            .Select(kv => new ResourceAmount
+            {
+                resourceType = kv.Key,
+                amount = kv.Value
+            })
+            .ToArray();
     }
 
+    /// <summary>
+    /// Appelé par SaveManager.LoadGame() :
+    /// réinitialise les montants selon le tableau chargé.
+    /// </summary>
     public void SetAmounts(ResourceAmount[] arr)
     {
-        amounts.Clear();
+        // On vide et on remet chaque valeur dans _resources
+        _resources.Clear();
         foreach (var r in arr)
-            amounts[r.resourceType] = r.amount;
-        // Met à jour l’UI, etc.
+        {
+            _resources[r.resourceType] = r.amount;
+        }
+
+        // Mets à jour ton UI ici si besoin, par exemple :
+        // UIManager.Instance.RefreshResourceDisplay();
     }
 }
