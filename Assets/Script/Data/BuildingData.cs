@@ -1,4 +1,5 @@
-// Assets/Scripts/BuildingData.cs
+// BuildingData.cs
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "CityBuilder/BuildingData", fileName = "NewBuildingData")]
@@ -23,4 +24,16 @@ public class BuildingData : ScriptableObject
 
     [Header("Description de la construction")]
     public string description;
+
+    [Header("Research")]
+    [Tooltip("Bâtiments à débloquer via cette énigme")]
+    public List<BuildingData> unlocks;
+
+    [Header("Research Cost")]
+    [Tooltip("Coût en ressources pour lancer la recherche")]
+    public ResourceAmount[] researchCost;
+
+    [Header("Research Duration")]
+    [Tooltip("Durée de recherche en secondes")]
+    public float researchDuration = 5f;
 }

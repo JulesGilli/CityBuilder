@@ -16,11 +16,14 @@ MonoBehaviour:
   prefab: {fileID: 4071108934670133561, guid: c7e7d58306463874e9f641faf4e7c2c5, type: 3}
   prefabVariants: []
   constructionCost:
-  - resourceType: 1
-    amount: 20
   - resourceType: 0
     amount: 30
+  - resourceType: 1
+    amount: 15
+  - resourceType: 2
+    amount: 5
   icon: {fileID: 21300000, guid: 1ba74648e41ef8e4faba5004d18642db, type: 3}
   description: "Extracts stone from a nearby vein. Requires an adjacent deposit and
     a wagon route to an enabled warehouse to stockpile blocks for your city\u2019s
     craftsmen."
+  unlocks: []

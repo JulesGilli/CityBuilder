@@ -23,7 +23,12 @@ MonoBehaviour:
   - resourceType: 0
     amount: 20
   - resourceType: 1
-    amount: 2
+    amount: 5
   icon: {fileID: 21300000, guid: 8e04bdb8fbb08cb4db537095584b437d, type: 3}
   description: A humble dwelling for your villagers. Must have road access to a market
     and a regular food supply to maintain health, happiness, and population growth.
+  unlocks: []
+  researchCost:
+  - resourceType: 0
+    amount: 10
+  researchDuration: 20

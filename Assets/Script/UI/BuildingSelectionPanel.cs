@@ -1,38 +1,60 @@
 // BuildingSelectionPanel.cs
 using UnityEngine;
 using System.Collections.Generic;
+using TMPro;
+using UnityEngine.UI;
 
 public class BuildingSelectionPanel : MonoBehaviour
 {
-    [Header("UI References")]
+    public static BuildingSelectionPanel Instance { get; private set; }
     public RectTransform contentParent;
-
-    [Header("Building Icons")]
     public GameObject buildingIconButtonPrefab;
-    public List<BuildingData> buildingDatas;
-
-    [Header("Road Icons")]
     public GameObject roadIconButtonPrefab;
-    public List<RoadData> roadDatas;
+    public List<BuildingData> initialBuildings;
+    public List<RoadData> initialRoads;
+
+    private List<BuildingData> unlockedBuildings = new List<BuildingData>();
+    private List<RoadData> unlockedRoads = new List<RoadData>();
+
+    void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
 
     void Start()
     {
-        // Instantiate building buttons
-        foreach (var data in buildingDatas)
-        {
-            var go = Instantiate(buildingIconButtonPrefab, contentParent);
-            var btn = go.GetComponent<BuildingIconButton>();
-            btn.Initialize(data);
-        }
+        unlockedBuildings.AddRange(initialBuildings);
+        unlockedRoads.AddRange(initialRoads);
+        foreach (var data in unlockedBuildings) AddBuildingIcon(data);
+        foreach (var data in unlockedRoads) AddRoadIcon(data);
+    }
 
-        // Instantiate road buttons
-        foreach (var data in roadDatas)
-        {
-            var go = Instantiate(roadIconButtonPrefab, contentParent);
-            var btn = go.GetComponent<RoadIconButton>();
-            btn.Initialize(data);
-        }
+    public bool IsBuildingUnlocked(BuildingData data) => unlockedBuildings.Contains(data);
 
+    public void UnlockBuilding(BuildingData data)
+    {
+        if (data == null || unlockedBuildings.Contains(data)) return;
+        unlockedBuildings.Add(data);
+        AddBuildingIcon(data);
+    }
 
+    public void UnlockRoad(RoadData data)
+    {
+        if (data == null || unlockedRoads.Contains(data)) return;
+        unlockedRoads.Add(data);
+        AddRoadIcon(data);
+    }
+
+    private void AddBuildingIcon(BuildingData data)
+    {
+        var go = Instantiate(buildingIconButtonPrefab, contentParent);
+        go.GetComponent<BuildingIconButton>().Initialize(data);
+    }
+
+    private void AddRoadIcon(RoadData data)
+    {
+        var go = Instantiate(roadIconButtonPrefab, contentParent);
+        go.GetComponent<RoadIconButton>().Initialize(data);
     }
 }
