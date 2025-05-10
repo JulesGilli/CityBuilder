@@ -22,6 +22,6 @@ MonoBehaviour:
     amount: 10
   - resourceType: 2
     amount: 20
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 9b8ba93665a7e694393e27ce6ce0e3d2, type: 3}
   description: 'Distributes stored goods to houses in the district. A vital hub for
     trade: connected homes consume food and luxuries here, boosting loyalty and prosperity.'

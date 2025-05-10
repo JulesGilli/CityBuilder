@@ -22,7 +22,7 @@ MonoBehaviour:
     amount: 20
   - resourceType: 2
     amount: 10
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 9bd895a56d38df64ea5849cbf15af6df, type: 3}
   description: "Central depot for all goods collected\u2014stone, wood, harvests,
     and more. Connect producers and markets by well-maintained roads to ensure steady
     supply."
